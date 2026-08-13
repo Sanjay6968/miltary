@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Package, ArrowRightLeft, ClipboardList, AlertTriangle, TrendingUp, TrendingDown, Filter } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

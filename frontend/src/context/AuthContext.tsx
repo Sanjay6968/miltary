@@ -4,7 +4,7 @@ interface User {
   id: number;
   username: string;
   role: string;
-  baseId: number | null;
+  baseId: string | number | null;
 }
 
 interface AuthContextType {
