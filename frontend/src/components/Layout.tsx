@@ -15,12 +15,14 @@ export const Layout = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const navItems = [
+  const allNavItems = [
     { label: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { label: 'Purchases', path: '/purchases', icon: <ShoppingCart className="w-5 h-5" /> },
-    { label: 'Transfers', path: '/transfers', icon: <ArrowRightLeft className="w-5 h-5" /> },
-    { label: 'Assignments', path: '/assignments', icon: <Target className="w-5 h-5" /> },
+    { label: 'Purchases', path: '/purchases', icon: <ShoppingCart className="w-5 h-5" />, roles: ['ADMIN', 'LOGISTICS'] },
+    { label: 'Transfers', path: '/transfers', icon: <ArrowRightLeft className="w-5 h-5" />, roles: ['ADMIN', 'COMMANDER', 'LOGISTICS'] },
+    { label: 'Assignments', path: '/assignments', icon: <Target className="w-5 h-5" />, roles: ['ADMIN', 'COMMANDER'] },
   ];
+
+  const navItems = allNavItems.filter(item => !item.roles || item.roles.includes(user.role));
 
   return (
     <div className="flex min-h-screen bg-background">
