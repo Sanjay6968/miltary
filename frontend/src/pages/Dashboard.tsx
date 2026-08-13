@@ -25,9 +25,20 @@ export const Dashboard = () => {
   const [filterBase, setFilterBase] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
+  const availableBases = user?.baseId && user.baseId !== 'All' ? [user.baseId] : BASES;
+
   const filteredAssets = MOCK_ASSETS.filter(a => {
+    // RBAC Filter
+    if (user?.baseId && user.baseId !== 'All' && a.base !== user.baseId) return false;
+    
+    // UI Filters
     if (filterBase && a.base !== filterBase) return false;
     if (filterCategory && a.category !== filterCategory) return false;
+    return true;
+  });
+
+  const filteredMovements = NET_MOVEMENTS.filter(m => {
+    if (user?.baseId && user.baseId !== 'All' && m.base !== user.baseId) return false;
     return true;
   });
 
@@ -35,7 +46,7 @@ export const Dashboard = () => {
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground">Command Dashboard</h2>
-        <p className="text-muted-foreground mt-1 font-medium">Welcome back, <strong className="text-foreground">{user?.username}</strong>. Overview of all military assets.</p>
+        <p className="text-muted-foreground mt-1 font-medium">Welcome back, <strong className="text-foreground">{user?.username}</strong>. Overview of {user?.baseId && user.baseId !== 'All' ? `Base ${user.baseId}` : 'all military'} assets.</p>
       </div>
 
       {/* Top Stat Cards */}
@@ -96,9 +107,10 @@ export const Dashboard = () => {
           className="h-10 rounded-md border border-input bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           value={filterBase}
           onChange={(e) => setFilterBase(e.target.value)}
+          disabled={user?.baseId !== 'All' && !!user?.baseId}
         >
-          <option value="" className="bg-background">All Bases</option>
-          {BASES.map(b => <option key={b} value={b} className="bg-background">{b}</option>)}
+          {(!user?.baseId || user.baseId === 'All') && <option value="" className="bg-background">All Bases</option>}
+          {availableBases.map(b => <option key={b} value={b} className="bg-background">{b}</option>)}
         </select>
         <select 
           className="h-10 rounded-md border border-input bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -115,7 +127,7 @@ export const Dashboard = () => {
         <h3 className="text-lg font-semibold text-foreground">Net Movement by Base</h3>
         <p className="text-sm text-muted-foreground mb-4">Click a base card to see detailed breakdown</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {NET_MOVEMENTS.map(m => (
+          {filteredMovements.map(m => (
             <Card key={m.base} className="glass-panel hover:border-primary/50 transition-colors cursor-pointer">
               <CardContent className="p-6">
                 <h4 className="font-bold text-foreground mb-4">{m.base}</h4>
