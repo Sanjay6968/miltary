@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  BASE_COMMANDER
+  LOGISTICS_OFFICER
+}
+
+enum EquipmentCategory {
+  WEAPON
+  VEHICLE
+  AMMUNITION
+}
+
+enum TransferStatus {
+  PENDING
+  IN_TRANSIT
+  COMPLETED
+}
+
+model Base {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(100)
+  location  String    @db.VarChar(150)
+  
+  users     User[]
+  purchases Purchase[]
+  transfersFrom Transfer[] @relation("SourceBase")
+  transfersTo   Transfer[] @relation("DestinationBase")
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(50)
+  passwordHash String   @db.VarChar(255)
+  role         Role
+  
+  baseId       Int?
+  base         Base?    @relation(fields: [baseId], references: [id], onDelete: SetNull)
+  
+  initiatedTransfers Transfer[]
+  auditLogs          AuditLog[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model EquipmentType {
+  id        Int               @id @default(autoincrement())
+  name      String            @db.VarChar(100)
+  category  EquipmentCategory
+  
+  purchases Purchase[]
+  transfers Transfer[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Purchase {
+  id              Int           @id @default(autoincrement())
+  baseId          Int
+  base            Base          @relation(fields: [baseId], references: [id])
+  equipmentTypeId Int
+  equipmentType   EquipmentType @relation(fields: [equipmentTypeId], references: [id])
+  quantity        Int
+  
+  createdAt       DateTime      @default(now())
+}
+
+model Transfer {
+  id                  Int            @id @default(autoincrement())
+  sourceBaseId        Int?
+  sourceBase          Base?          @relation("SourceBase", fields: [sourceBaseId], references: [id])
+  destinationBaseId   Int
+  destinationBase     Base           @relation("DestinationBase", fields: [destinationBaseId], references: [id])
+  equipmentTypeId     Int
+  equipmentType       EquipmentType  @relation(fields: [equipmentTypeId], references: [id])
+  quantity            Int
+  status              TransferStatus @default(COMPLETED)
+  
+  initiatedById       Int
+  initiatedBy         User           @relation(fields: [initiatedById], references: [id])
+  
+  createdAt           DateTime       @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String   @db.VarChar(50) // 'PURCHASE', 'TRANSFER', 'ASSIGNMENT', 'EXPENDITURE'
+  details   String   @db.Text
+  
+  createdAt DateTime @default(now())
+}
